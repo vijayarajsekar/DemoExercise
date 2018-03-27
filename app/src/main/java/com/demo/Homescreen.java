@@ -107,7 +107,7 @@ public class Homescreen extends AppCompatActivity implements SwipeRefreshLayout.
 
         // Check the api data and set data into adapter
         if (null != _data) {
-            mItemsAdapter = new ListAdapter(_data);
+            mItemsAdapter = new ListAdapter(mContext,_data);
             mListView.setAdapter(mItemsAdapter);
             mListView.setVisibility(View.VISIBLE);
         } else {
