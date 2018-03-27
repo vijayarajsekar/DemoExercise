@@ -16,6 +16,15 @@ public class ToastUtils {
      * @param _message
      */
     public static void showToast(Context _ctx, String _message) {
-        Toast.makeText(_ctx, _message, Toast.LENGTH_LONG).show();
+
+        Toast mToast = null;
+
+        if (null != mToast) {
+            mToast.cancel();
+        }
+
+        mToast = Toast.makeText(_ctx, _message, Toast.LENGTH_LONG);
+        mToast.show();
+
     }
 }

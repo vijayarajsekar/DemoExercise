@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="title_size">21dp</dimen>
+
+    <dimen name="description_size">18dp</dimen>
+
+    <dimen name="cardview_padding">5dp</dimen>
+
+    <dimen name="image_size">75dp</dimen>
+
+    <dimen name="cardview_radius">4dp</dimen>
+    <dimen name="cardview_elevation">4dp</dimen>
+
+</resources>

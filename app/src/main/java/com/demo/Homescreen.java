@@ -4,11 +4,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
-import com.demo.adapter.CustomAdapter;
+import com.demo.adapter.ListAdapter;
 import com.demo.listeners.ApiCallback;
 import com.demo.listeners.AppConstants;
 import com.demo.model.Row;
@@ -28,9 +29,12 @@ public class Homescreen extends AppCompatActivity implements SwipeRefreshLayout.
     // Member variable decalration
     private static final String TAG = Homescreen.class.getSimpleName();
 
-    private ListView mListView;
+    private RecyclerView mListView;
     private SwipeRefreshLayout mSwipeContainer;
     private Context mContext;
+    private ListAdapter mItemsAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private List<Row> mListData;
 
     public static ApiCallback mApiCallback;
 
@@ -44,30 +48,20 @@ public class Homescreen extends AppCompatActivity implements SwipeRefreshLayout.
 
         mApiCallback = this;
 
-        mListView = findViewById(R.id.listview);
+        mListView = findViewById(R.id.itemsListview);
+        mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        mListView.setLayoutManager(mLayoutManager);
+        mListView.setItemAnimator(new DefaultItemAnimator());
+
         mSwipeContainer = findViewById(R.id.swiperefresh);
         mSwipeContainer.setColorSchemeResources(
                 android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light);
         mSwipeContainer.setOnRefreshListener(this);
 
-        /**
-         * Checking internet connectivity
-         */
-        if (ConnectionManager.isOnline(mContext)) {
-            callApi();
-        } else {
-            ToastUtils.showToast(mContext, getString(R.string.no_internet_status));
-        }
+        // Initial api call to retrieve data
+        callApi();
 
-        /**
-         * List onItem Click Listener
-         */
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> arg0, View arg1, int pos, long arg3) {
-                ToastUtils.showToast(mContext, "Item " + pos + " clicked");
-            }
-        });
     }
 
     @Override
@@ -80,11 +74,22 @@ public class Homescreen extends AppCompatActivity implements SwipeRefreshLayout.
      */
     private void callApi() {
 
-        // Show loading progress
-        mSwipeContainer.setRefreshing(true);
+        if (ConnectionManager.isOnline(mContext)) {
 
-        // Requesting api for data
-        ApiClient.getData(mApiCallback);
+            // Show loading progress
+            mSwipeContainer.setRefreshing(true);
+
+            // Requesting api for data
+            ApiClient.getData(mApiCallback);
+
+        } else {
+            ToastUtils.showToast(mContext, getString(R.string.no_internet_status));
+            mSwipeContainer.setRefreshing(false);
+
+            // Checking backup data, if device went offline
+            if (null == mListData)
+                mListView.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -97,9 +102,20 @@ public class Homescreen extends AppCompatActivity implements SwipeRefreshLayout.
     @Override
     public void notifylist(List<Row> _data) {
 
-        if (null != _data)
-            mListView.setAdapter(new CustomAdapter(mContext, _data));
+        // Backup data, if device went offline
+        mListData = _data;
+
+        // Check the api data and set data into adapter
+        if (null != _data) {
+            mItemsAdapter = new ListAdapter(_data);
+            mListView.setAdapter(mItemsAdapter);
+            mListView.setVisibility(View.VISIBLE);
+        } else {
+            ToastUtils.showToast(mContext, getString(R.string.no_data_available));
+            mListView.setVisibility(View.GONE);
+        }
 
         mSwipeContainer.setRefreshing(false);
+
     }
 }
